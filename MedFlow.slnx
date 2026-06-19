@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="src/MedFlow.Agendamento/MedFlow.Agendamento.csproj" Id="2d9a77ce-2acc-4c18-9579-65a2bf46c877" />
+  <Project Path="src/MedFlow.API/MedFlow.API.csproj" Id="f86e529d-c82f-4540-8212-2628696b4a23" />
+  <Project Path="src/MedFlow.Identity/MedFlow.Identity.csproj" Id="569977ba-01e1-4b0e-9c4d-b857f68ac296" />
+  <Project Path="src/MedFlow.Notificacoes/MedFlow.Notificacoes.csproj" Id="1d89da85-2550-4022-ac88-2e99b86c058f" />
+  <Project Path="src/MedFlow.Prontuario/MedFlow.Prontuario.csproj" Id="bb28a378-9f59-4263-a967-3827b7628606" />
+  <Project Path="src/MedFlow.SharedKernel/MedFlow.SharedKernel.csproj" />
+  <Project Path="src/MedFlow.Worker/MedFlow.Worker.csproj" Id="13c8dc92-b9cd-4109-b781-eed0c4fe8183" />
+</Solution>

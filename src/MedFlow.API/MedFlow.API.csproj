@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MedFlow.Identity\MedFlow.Identity.csproj" />
+    <ProjectReference Include="..\MedFlow.Prontuario\MedFlow.Prontuario.csproj" />
+    <ProjectReference Include="..\MedFlow.Agendamento\MedFlow.Agendamento.csproj" />
+    <ProjectReference Include="..\MedFlow.SharedKernel\MedFlow.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

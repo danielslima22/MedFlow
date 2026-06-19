@@ -1,0 +1,86 @@
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: medflow-postgres
+    environment:
+      POSTGRES_USER: medflow
+      POSTGRES_PASSWORD: medflow@123
+      POSTGRES_DB: medflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medflow-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: medflow-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: medflow
+      MONGO_INITDB_ROOT_PASSWORD: medflow@123
+      MONGO_INITDB_DATABASE: medflow_prontuario
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - medflow-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: medflow-redis
+    command: redis-server --requirepass medflow@123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - medflow-network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: medflow-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: medflow
+      RABBITMQ_DEFAULT_PASS: medflow@123
+      RABBITMQ_DEFAULT_VHOST: medflow
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - medflow-network
+    restart: unless-stopped
+
+  seq:
+    image: datalust/seq:latest
+    container_name: medflow-seq
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_ADMINPASSWORD: medflow@123
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seq_data:/data
+    networks:
+      - medflow-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  rabbitmq_data:
+  seq_data:
+
+networks:
+  medflow-network:
+    driver: bridge
