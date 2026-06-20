@@ -1,20 +1,23 @@
-namespace MedFlow.Agendamento.Domain.ValueObjects;
+﻿namespace MedFlow.Agendamento.Domain.ValueObjects;
 
 public record DataHoraConsulta
 {
-    public DateTime Inicio { get; }
-    public DateTime Fim { get; }
+    public DateTime Inicio { get; init; }
+    public DateTime Fim { get; init; }
+
+    private DataHoraConsulta() { }
 
     public DataHoraConsulta(DateTime inicio, int duracaoMinutos = 30)
     {
-        if (inicio <= DateTime.UtcNow)
+        if (duracaoMinutos < 15 || duracaoMinutos > 120)
+            throw new ArgumentException("Duracao deve ser entre 15 e 120 minutos.");
+
+        Inicio = DateTime.SpecifyKind(inicio, DateTimeKind.Utc);
+        
+        if (Inicio <= DateTime.UtcNow)
             throw new ArgumentException("A consulta deve ser agendada para uma data futura.");
 
-        if (duracaoMinutos < 15 || duracaoMinutos > 120)
-            throw new ArgumentException("Duração deve ser entre 15 e 120 minutos.");
-
-        Inicio = inicio;
-        Fim = inicio.AddMinutes(duracaoMinutos);
+        Fim = Inicio.AddMinutes(duracaoMinutos);
     }
 
     public bool ConflitaCom(DataHoraConsulta outra) =>
