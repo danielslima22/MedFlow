@@ -1,6 +1,8 @@
+using FluentValidation;
+using MedFlow.Agendamento.Domain.Entities;
 using MedFlow.Agendamento.Infrastructure;
 using MedFlow.Agendamento.Infrastructure.Repositories;
-using MedFlow.Agendamento.Domain.Entities;
+using MedFlow.SharedKernel.Behaviors;
 using MedFlow.SharedKernel.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,18 +16,27 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AgendamentoDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
 
-// Repositórios
+// Repositorios
 builder.Services.AddScoped<IRepository<Consulta>, ConsultaRepository>();
 
 // UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, AgendamentoUnitOfWork>();
 
-// MediatR
+// MediatR + ValidationBehavior
 builder.Services.AddMediatR(cfg =>
+{
     cfg.RegisterServicesFromAssembly(
-        typeof(MedFlow.Agendamento.Application.Commands.AgendarConsultaCommand).Assembly));
+        typeof(MedFlow.Agendamento.Application.Commands.AgendarConsultaCommand).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssembly(
+    typeof(MedFlow.Agendamento.Application.Commands.AgendarConsultaCommand).Assembly);
 
 var app = builder.Build();
+
+app.UseMiddleware<MedFlow.API.Middlewares.ErrorHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
