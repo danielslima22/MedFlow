@@ -30,4 +30,25 @@ public class AgendamentoController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(query, ct);
         return Ok(result);
     }
+
+    [HttpPut("consultas/{id:guid}/confirmar")]
+    public async Task<IActionResult> ConfirmarConsulta(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new ConfirmarConsultaCommand(id), ct);
+        if (!result) return NotFound("Consulta não encontrada.");
+        return NoContent();
+    }
+
+    [HttpPut("consultas/{id:guid}/cancelar")]
+    public async Task<IActionResult> CancelarConsulta(
+        Guid id,
+        [FromBody] CancelarConsultaRequest request,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new CancelarConsultaCommand(id, request.Motivo), ct);
+        if (!result) return NotFound("Consulta não encontrada.");
+        return NoContent();
+    }
 }
+
+public record CancelarConsultaRequest(string Motivo);
