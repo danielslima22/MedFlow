@@ -2,9 +2,11 @@
 using MedFlow.Agendamento.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MedFlow.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/agendamento")]
 public class AgendamentoController(IMediator mediator) : ControllerBase

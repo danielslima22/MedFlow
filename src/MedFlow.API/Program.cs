@@ -1,12 +1,21 @@
 using FluentValidation;
+using MedFlow.Agendamento.Application.Commands;
 using MedFlow.Agendamento.Domain.Entities;
 using MedFlow.Agendamento.Infrastructure;
 using MedFlow.Agendamento.Infrastructure.Repositories;
 using MedFlow.API.Middlewares;
+using MedFlow.Identity.Application.Commands;
+using MedFlow.Identity.Application.Services;
+using MedFlow.Identity.Infrastructure;
 using MedFlow.SharedKernel.Behaviors;
 using MedFlow.SharedKernel.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
+
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -25,29 +34,72 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
+    
     builder.Services.AddSwaggerGen();
 
-    // EF Core + PostgreSQL
+    // EF Core + PostgreSQL — Agendamento
     builder.Services.AddDbContext<AgendamentoDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
 
+    // EF Core + PostgreSQL — Identity
+    builder.Services.AddDbContext<MedFlowIdentityDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
+
+    // ASP.NET Identity
+    builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+    })
+    .AddEntityFrameworkStores<MedFlowIdentityDbContext>()
+    .AddDefaultTokenProviders();
+
+    // JWT
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+    var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Emissor"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audiencia"],
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+    builder.Services.AddAuthorization();
+
     // Repositorios
     builder.Services.AddScoped<IRepository<Consulta>, ConsultaRepository>();
-
-    // UnitOfWork
     builder.Services.AddScoped<IUnitOfWork, AgendamentoUnitOfWork>();
+    builder.Services.AddScoped<JwtTokenService>();
 
-    // MediatR + ValidationBehavior
+    // MediatR
     builder.Services.AddMediatR(cfg =>
     {
         cfg.RegisterServicesFromAssembly(
-            typeof(MedFlow.Agendamento.Application.Commands.AgendarConsultaCommand).Assembly);
+            typeof(AgendarConsultaCommand).Assembly);
+        cfg.RegisterServicesFromAssembly(
+            typeof(RegistrarUsuarioCommand).Assembly);
         cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
     });
 
     // FluentValidation
     builder.Services.AddValidatorsFromAssembly(
-        typeof(MedFlow.Agendamento.Application.Commands.AgendarConsultaCommand).Assembly);
+        typeof(AgendarConsultaCommand).Assembly);
 
     var app = builder.Build();
 
@@ -58,6 +110,7 @@ try
     app.UseSwaggerUI();
 
     app.UseHttpsRedirection();
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 
