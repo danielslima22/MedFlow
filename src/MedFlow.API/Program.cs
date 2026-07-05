@@ -13,8 +13,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Serilog;
 using System.Text;
+
 
 
 Log.Logger = new LoggerConfiguration()
@@ -34,8 +36,9 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    
-    builder.Services.AddSwaggerGen();
+
+    // Scalar (substituto moderno do Swagger)
+    builder.Services.AddOpenApi();
 
     // EF Core + PostgreSQL — Agendamento
     builder.Services.AddDbContext<AgendamentoDbContext>(options =>
@@ -101,13 +104,25 @@ try
     builder.Services.AddValidatorsFromAssembly(
         typeof(AgendarConsultaCommand).Assembly);
 
+
+
+
     var app = builder.Build();
 
     app.UseMiddleware<ErrorHandlingMiddleware>();
     app.UseSerilogRequestLogging();
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("MedFlow API")
+               .WithTheme(Scalar.AspNetCore.ScalarTheme.DeepSpace)
+               .WithDefaultHttpClient(Scalar.AspNetCore.ScalarTarget.CSharp, Scalar.AspNetCore.ScalarClient.HttpClient)
+               .WithHttpBearerAuthentication(bearer =>
+               {
+                   bearer.Token = "seu-token-aqui";
+               });
+    });
 
     app.UseHttpsRedirection();
     app.UseAuthentication();
